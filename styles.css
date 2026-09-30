@@ -538,6 +538,58 @@ input:focus, select:focus {
     }
 }
 
+/* Sync Indicator */
+.sync-indicator {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.sync-indicator.synced {
+    color: var(--secondary);
+    border-color: var(--secondary);
+}
+
+.sync-indicator.syncing {
+    color: var(--warning);
+    border-color: var(--warning);
+}
+
+.sync-indicator.error {
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.sync-indicator.offline {
+    color: var(--text-muted);
+    border-color: var(--text-muted);
+}
+
+.sync-icon {
+    font-size: 1rem;
+}
+
+.sync-indicator.syncing .sync-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;

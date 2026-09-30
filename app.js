@@ -492,3 +492,27 @@ class StudyTracker {
 
 // Inicializar aplicación
 const tracker = new StudyTracker();
+
+// Iniciar sincronización automática
+sync.startAutoSync(
+    // Obtener datos locales
+    () => ({
+        sessions: tracker.sessions,
+        weeklyGoal: tracker.weeklyGoal,
+        lastModified: new Date().toISOString()
+    }),
+    // Cargar datos de la nube
+    (data) => {
+        if (data.sessions) {
+            tracker.sessions = data.sessions;
+            tracker.saveSessions();
+            tracker.updateStats();
+            tracker.renderCalendar();
+            tracker.renderSessions();
+            tracker.updateGoalProgress();
+            tracker.populateSubjectFilter();
+            tracker.showToast('Datos sincronizados desde la nube');
+        }
+    },
+    (typeof SYNC_CONFIG !== 'undefined') ? SYNC_CONFIG.syncInterval : 30000
+);
