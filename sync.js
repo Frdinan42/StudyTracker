@@ -95,8 +95,8 @@ class StudySync {
         };
 
         const s = statuses[status] || statuses.offline;
-        indicator.textContent = s.text;
-        indicator.className = `sync-status ${s.class}`;
+        indicator.innerHTML = `<span class="sync-icon">${status === 'syncing' ? '↻' : status === 'synced' ? '✓' : status === 'error' ? '✗' : '○'}</span><span class="sync-text">${s.text}</span>`;
+        indicator.className = `sync-indicator ${s.class}`;
     }
 
     // Iniciar sincronización automática
@@ -146,6 +146,7 @@ class StudySync {
             // Si la nube tiene datos más recientes, cargarlos
             if (cloudTime > localTime) {
                 loadDataCallback(cloudData);
+                this.updateSyncStatus('synced');
             } else {
                 // Si los datos locales son más recientes, subirlos
                 await this.saveToCloud(localData);
