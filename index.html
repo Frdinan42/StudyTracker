@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyTracker - Seguimiento de Estudio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 StudyTracker</h1>
+            <p class="subtitle">Tu compañero de estudio diario</p>
+        </header>
+
+        <!-- Estadísticas -->
+        <section class="stats-grid">
+            <div class="stat-card streak">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-content">
+                    <span class="stat-value" id="currentStreak">0</span>
+                    <span class="stat-label">Racha actual (días)</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-content">
+                    <span class="stat-value" id="totalTime">0h 0m</span>
+                    <span class="stat-label">Tiempo total</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📖</div>
+                <div class="stat-content">
+                    <span class="stat-value" id="totalSessions">0</span>
+                    <span class="stat-label">Sesiones totales</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-content">
+                    <span class="stat-value" id="bestStreak">0</span>
+                    <span class="stat-label">Mejor racha</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Registrar sesión -->
+        <section class="card">
+            <h2>➕ Registrar Sesión de Estudio</h2>
+            <form id="studyForm">
+                <div class="form-group">
+                    <label for="subject">Materia</label>
+                    <select id="subject" required>
+                        <option value="">Selecciona una materia...</option>
+                        <option value="Sostenibilidad aplicada al sistema productivo">Sostenibilidad aplicada al sistema productivo</option>
+                        <option value="Sistemas informáticos">Sistemas informáticos</option>
+                        <option value="Programación">Programación</option>
+                        <option value="Lenguajes de marcas y sistemas de gestión de información">Lenguajes de marcas y sistemas de gestión de información</option>
+                        <option value="Itinerario personal para la empleabilidad">Itinerario personal para la empleabilidad</option>
+                        <option value="Entornos de desarrollo">Entornos de desarrollo</option>
+                        <option value="Digitalización aplicada a los sectores productivos">Digitalización aplicada a los sectores productivos</option>
+                        <option value="Bases de datos">Bases de datos</option>
+                        <option value="Desarrollo con IA">Desarrollo con IA</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date">Fecha</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="startTime">Hora inicio</label>
+                        <input type="time" id="startTime" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="duration">Duración (minutos)</label>
+                        <input type="number" id="duration" min="1" max="480" placeholder="Ej: 45" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notas (opcional)</label>
+                        <input type="text" id="notes" placeholder="¿Qué estudiaste?">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <span>💾</span> Guardar Sesión
+                </button>
+            </form>
+        </section>
+
+        <!-- Calendario de racha -->
+        <section class="card">
+            <h2>📅 Calendario de Actividad</h2>
+            <div class="calendar-header">
+                <button id="prevMonth" class="btn-nav">←</button>
+                <h3 id="currentMonth">Septiembre 2026</h3>
+                <button id="nextMonth" class="btn-nav">→</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Se genera dinámicamente -->
+            </div>
+            <div class="calendar-legend">
+                <span class="legend-item"><span class="legend-dot active"></span> Día estudiado</span>
+                <span class="legend-item"><span class="legend-dot today"></span> Hoy</span>
+            </div>
+        </section>
+
+        <!-- Historial -->
+        <section class="card">
+            <h2>📋 Historial de Sesiones</h2>
+            <div class="filter-bar">
+                <select id="filterSubject">
+                    <option value="">Todas las materias</option>
+                </select>
+                <button id="clearFilter" class="btn-secondary">Limpiar filtro</button>
+            </div>
+            <div class="sessions-list" id="sessionsList">
+                <!-- Se genera dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Respaldo de datos -->
+        <section class="card">
+            <h2>💾 Respaldo de Datos</h2>
+            <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem;">
+                Exporta tus datos para no perderlos o importa un respaldo anterior.
+            </p>
+            <div class="backup-actions">
+                <button id="exportData" class="btn-secondary">
+                    <span>📤</span> Exportar datos
+                </button>
+                <label class="btn-secondary" for="importFile">
+                    <span>📥</span> Importar datos
+                </label>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+            </div>
+        </section>
+
+        <!-- Metas semanales -->
+        <section class="card">
+            <h2>🎯 Meta Semanal</h2>
+            <div class="goal-progress">
+                <div class="goal-info">
+                    <span id="weeklyTime">0h 0m</span>
+                    <span class="goal-target">/ <span id="weeklyGoal">5h 0m</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="weeklyProgress"></div>
+                </div>
+                <p class="goal-message" id="goalMessage">¡Estudia 5 minutos más para alcanzar tu meta!</p>
+            </div>
+            <div class="form-group goal-input">
+                <label for="goalHours">Meta semanal (horas)</label>
+                <input type="number" id="goalHours" min="1" max="168" value="5">
+                <button id="updateGoal" class="btn-secondary">Actualizar meta</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3>⚠️ Eliminar sesión</h3>
+            <p>¿Estás seguro de que quieres eliminar esta sesión?</p>
+            <div class="modal-actions">
+                <button id="cancelDelete" class="btn-secondary">Cancelar</button>
+                <button id="confirmDelete" class="btn-danger">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
