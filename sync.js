@@ -1,25 +1,14 @@
-// Sistema de sincronización con JSONBin.io
-// Gratis, sin registro, con código de acceso personal
+// Sistema de sincronización simplificado con JSONBin.io
+// Estrategia: La nube es la fuente de verdad
 
 class StudySync {
     constructor() {
-        // Cargar configuración del archivo config.js
         this.binId = (typeof SYNC_CONFIG !== 'undefined') ? SYNC_CONFIG.binId : 'TU_BIN_ID_AQUI';
         this.apiKey = (typeof SYNC_CONFIG !== 'undefined') ? SYNC_CONFIG.apiKey : 'TU_API_KEY_AQUI';
         this.syncIntervalMs = (typeof SYNC_CONFIG !== 'undefined') ? SYNC_CONFIG.syncInterval : 30000;
         this.baseUrl = 'https://api.jsonbin.io/v3/b';
         this.lastSync = null;
         this.syncInterval = null;
-    }
-
-    // Generar código aleatorio para el bin
-    static generateBinId() {
-        const chars = '0123456789abcdef';
-        let result = '';
-        for (let i = 0; i < 24; i++) {
-            result += chars[Math.floor(Math.random() * chars.length)];
-        }
-        return result;
     }
 
     // Guardar datos en la nube
@@ -67,7 +56,6 @@ class StudySync {
                 this.updateSyncStatus('synced');
                 return result.record;
             } else if (response.status === 404) {
-                // El bin no existe todavía, crearlo
                 return null;
             } else {
                 const errorText = await response.text();
@@ -88,14 +76,14 @@ class StudySync {
         if (!indicator) return;
 
         const statuses = {
-            synced: { text: '✓ Sincronizado', class: 'synced' },
-            syncing: { text: '↻ Sincronizando...', class: 'syncing' },
-            error: { text: '✗ Error de conexión', class: 'error' },
-            offline: { text: '○ Sin conexión', class: 'offline' }
+            synced: { text: '✓ Sincronizado', class: 'synced', icon: '✓' },
+            syncing: { text: '↻ Sincronizando...', class: 'syncing', icon: '↻' },
+            error: { text: '✗ Error de conexión', class: 'error', icon: '✗' },
+            offline: { text: '○ Sin conexión', class: 'offline', icon: '○' }
         };
 
         const s = statuses[status] || statuses.offline;
-        indicator.innerHTML = `<span class="sync-icon">${status === 'syncing' ? '↻' : status === 'synced' ? '✓' : status === 'error' ? '✗' : '○'}</span><span class="sync-text">${s.text}</span>`;
+        indicator.innerHTML = `<span class="sync-icon">${s.icon}</span><span class="sync-text">${s.text}</span>`;
         indicator.className = `sync-indicator ${s.class}`;
     }
 
@@ -125,7 +113,7 @@ class StudySync {
         });
     }
 
-    // Sincronización inmediata
+    // Sincronización inmediata - ESTRATEGIA SIMPLE
     async syncNow(getDataCallback, loadDataCallback) {
         if (!navigator.onLine) {
             this.updateSyncStatus('offline');
@@ -134,52 +122,26 @@ class StudySync {
 
         this.updateSyncStatus('syncing');
 
-        // Primero cargar datos de la nube (si existen)
+        // Cargar datos de la nube
         const cloudData = await this.loadFromCloud();
         
         // Obtener datos locales
         const localData = getDataCallback();
 
         if (cloudData && cloudData.sessions && cloudData.sessions.length > 0) {
-            // Fusionar datos: combinar sesiones de la nube y locales
-            const mergedSessions = this.mergeSessions(cloudData.sessions, localData.sessions);
-            
-            const mergedData = {
-                sessions: mergedSessions,
-                weeklyGoal: localData.weeklyGoal || cloudData.weeklyGoal,
-                lastModified: new Date().toISOString()
-            };
-
-            // Guardar datos fusionados en la nube
-            await this.saveToCloud(mergedData);
-            
-            // Cargar datos fusionados en el dispositivo actual
-            loadDataCallback(mergedData);
-            this.updateSyncStatus('synced');
+            // La nube tiene datos: comparar por cantidad de sesiones
+            if (cloudData.sessions.length >= localData.sessions.length) {
+                // La nube tiene más o iguales sesiones: cargar de la nube
+                loadDataCallback(cloudData);
+                this.updateSyncStatus('synced');
+            } else {
+                // El dispositivo local tiene más sesiones: subir a la nube
+                await this.saveToCloud(localData);
+            }
         } else {
-            // No hay datos en la nube, subir los locales
+            // No hay datos en la nube: subir los locales
             await this.saveToCloud(localData);
         }
-    }
-
-    // Fusionar sesiones de dos fuentes (eliminar duplicados por ID)
-    mergeSessions(cloudSessions, localSessions) {
-        const sessionMap = new Map();
-        
-        // Añadir sesiones de la nube
-        cloudSessions.forEach(session => {
-            sessionMap.set(session.id, session);
-        });
-        
-        // Añadir sesiones locales (sobrescribe si existe el mismo ID)
-        localSessions.forEach(session => {
-            sessionMap.set(session.id, session);
-        });
-        
-        // Convertir a array y ordenar por fecha (más reciente primero)
-        return Array.from(sessionMap.values()).sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
-        });
     }
 
     // Detener sincronización
