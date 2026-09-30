@@ -13,7 +13,7 @@
 
 const SYNC_CONFIG = {
     // Tu Bin ID (lo obtienes al crear un bin en jsonbin.io)
-    binId: '6abd4bc6ffd5d160533fe6fb',
+    binId: '6abd5c24ffd5d1605340195a',
     
     // Tu API Key (lo obtienes en tu perfil de jsonbin.io)
     apiKey: '$2a$10$kTx.jwxz/1SVg8P9IdzlX.GWD8PgjtD8u7g44H8nPJb93PUYOgMbu',
