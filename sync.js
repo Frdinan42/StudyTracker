@@ -141,22 +141,45 @@ class StudySync {
         const localData = getDataCallback();
 
         if (cloudData && cloudData.sessions && cloudData.sessions.length > 0) {
-            // Comparar con datos locales
-            const cloudTime = new Date(cloudData.lastModified || 0);
-            const localTime = new Date(localData.lastModified || 0);
+            // Fusionar datos: combinar sesiones de la nube y locales
+            const mergedSessions = this.mergeSessions(cloudData.sessions, localData.sessions);
+            
+            const mergedData = {
+                sessions: mergedSessions,
+                weeklyGoal: localData.weeklyGoal || cloudData.weeklyGoal,
+                lastModified: new Date().toISOString()
+            };
 
-            // Si la nube tiene datos más recientes, cargarlos
-            if (cloudTime > localTime) {
-                loadDataCallback(cloudData);
-                this.updateSyncStatus('synced');
-            } else {
-                // Si los datos locales son más recientes o iguales, subirlos
-                await this.saveToCloud(localData);
-            }
+            // Guardar datos fusionados en la nube
+            await this.saveToCloud(mergedData);
+            
+            // Cargar datos fusionados en el dispositivo actual
+            loadDataCallback(mergedData);
+            this.updateSyncStatus('synced');
         } else {
             // No hay datos en la nube, subir los locales
             await this.saveToCloud(localData);
         }
+    }
+
+    // Fusionar sesiones de dos fuentes (eliminar duplicados por ID)
+    mergeSessions(cloudSessions, localSessions) {
+        const sessionMap = new Map();
+        
+        // Añadir sesiones de la nube
+        cloudSessions.forEach(session => {
+            sessionMap.set(session.id, session);
+        });
+        
+        // Añadir sesiones locales (sobrescribe si existe el mismo ID)
+        localSessions.forEach(session => {
+            sessionMap.set(session.id, session);
+        });
+        
+        // Convertir a array y ordenar por fecha (más reciente primero)
+        return Array.from(sessionMap.values()).sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
     }
 
     // Detener sincronización
