@@ -134,12 +134,14 @@ class StudySync {
 
         this.updateSyncStatus('syncing');
 
-        // Primero intentar cargar datos de la nube
+        // Primero cargar datos de la nube (si existen)
         const cloudData = await this.loadFromCloud();
+        
+        // Obtener datos locales
+        const localData = getDataCallback();
 
-        if (cloudData && cloudData.sessions) {
+        if (cloudData && cloudData.sessions && cloudData.sessions.length > 0) {
             // Comparar con datos locales
-            const localData = getDataCallback();
             const cloudTime = new Date(cloudData.lastModified || 0);
             const localTime = new Date(localData.lastModified || 0);
 
@@ -148,12 +150,11 @@ class StudySync {
                 loadDataCallback(cloudData);
                 this.updateSyncStatus('synced');
             } else {
-                // Si los datos locales son más recientes, subirlos
+                // Si los datos locales son más recientes o iguales, subirlos
                 await this.saveToCloud(localData);
             }
         } else {
             // No hay datos en la nube, subir los locales
-            const localData = getDataCallback();
             await this.saveToCloud(localData);
         }
     }

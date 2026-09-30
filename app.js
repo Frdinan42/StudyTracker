@@ -493,26 +493,41 @@ class StudyTracker {
 // Inicializar aplicación
 const tracker = new StudyTracker();
 
+// Debug: verificar que todo está cargado
+console.log('=== StudyTracker Debug ===');
+console.log('SYNC_CONFIG:', typeof SYNC_CONFIG !== 'undefined' ? SYNC_CONFIG : 'NO DEFINIDO');
+console.log('sync object:', typeof sync !== 'undefined' ? sync : 'NO DEFINIDO');
+console.log('tracker object:', typeof tracker !== 'undefined' ? tracker : 'NO DEFINIDO');
+
 // Iniciar sincronización automática
-sync.startAutoSync(
-    // Obtener datos locales
-    () => ({
-        sessions: tracker.sessions,
-        weeklyGoal: tracker.weeklyGoal,
-        lastModified: new Date().toISOString()
-    }),
-    // Cargar datos de la nube
-    (data) => {
-        if (data.sessions) {
-            tracker.sessions = data.sessions;
-            tracker.saveSessions();
-            tracker.updateStats();
-            tracker.renderCalendar();
-            tracker.renderSessions();
-            tracker.updateGoalProgress();
-            tracker.populateSubjectFilter();
-            tracker.showToast('Datos sincronizados desde la nube');
-        }
-    },
-    (typeof SYNC_CONFIG !== 'undefined') ? SYNC_CONFIG.syncInterval : 30000
-);
+if (typeof sync !== 'undefined' && typeof SYNC_CONFIG !== 'undefined') {
+    console.log('Iniciando sincronización...');
+    sync.startAutoSync(
+        // Obtener datos locales
+        () => {
+            console.log('Obteniendo datos locales...');
+            return {
+                sessions: tracker.sessions,
+                weeklyGoal: tracker.weeklyGoal,
+                lastModified: new Date().toISOString()
+            };
+        },
+        // Cargar datos de la nube
+        (data) => {
+            console.log('Datos recibidos de la nube:', data);
+            if (data.sessions) {
+                tracker.sessions = data.sessions;
+                tracker.saveSessions();
+                tracker.updateStats();
+                tracker.renderCalendar();
+                tracker.renderSessions();
+                tracker.updateGoalProgress();
+                tracker.populateSubjectFilter();
+                tracker.showToast('Datos sincronizados desde la nube');
+            }
+        },
+        (typeof SYNC_CONFIG !== 'undefined') ? SYNC_CONFIG.syncInterval : 30000
+    );
+} else {
+    console.error('Error: sync o SYNC_CONFIG no están definidos');
+}
