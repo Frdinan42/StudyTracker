@@ -391,6 +391,22 @@ input:focus, select:focus {
     margin-bottom: 10px;
 }
 
+/* Diagnostic Result */
+.diagnostic-result {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--bg-input);
+    border-radius: 10px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    display: none;
+}
+
+.diagnostic-result.show {
+    display: block;
+}
+
 /* Backup Actions */
 .backup-actions {
     display: flex;

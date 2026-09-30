@@ -154,6 +154,11 @@ class StudyTracker {
             }
         });
 
+        // Diagnóstico
+        document.getElementById('diagnosticBtn').addEventListener('click', () => {
+            this.runDiagnostic();
+        });
+
         // Modal
         document.getElementById('cancelDelete').addEventListener('click', () => {
             this.closeModal();
@@ -473,6 +478,52 @@ class StudyTracker {
         this.saveWeeklyGoal();
         this.updateGoalProgress();
         this.showToast('Meta actualizada correctamente');
+    }
+
+    // Diagnóstico de sincronización
+    async runDiagnostic() {
+        const resultDiv = document.getElementById('diagnosticResult');
+        resultDiv.classList.add('show');
+        resultDiv.textContent = 'Ejecutando diagnóstico...\n';
+
+        try {
+            // Datos locales
+            const localCount = this.sessions.length;
+            resultDiv.textContent += `📱 Sesiones en este dispositivo: ${localCount}\n`;
+
+            // Datos en la nube
+            const cloudData = await sync.loadFromCloud();
+            if (cloudData && cloudData.sessions) {
+                resultDiv.textContent += `☁️  Sesiones en la nube: ${cloudData.sessions.length}\n`;
+                resultDiv.textContent += `🕐 Última modificación: ${cloudData.lastModified || 'N/A'}\n`;
+                
+                if (cloudData.sessions.length < localCount) {
+                    resultDiv.textContent += `\n⚠️  La nube tiene menos sesiones que este dispositivo.\n`;
+                    resultDiv.textContent += '🔄 Sincronizando ahora...\n';
+                    await sync.saveToCloud({
+                        sessions: this.sessions,
+                        weeklyGoal: this.weeklyGoal,
+                        lastModified: new Date().toISOString()
+                    });
+                    resultDiv.textContent += '✅ Sincronización completada';
+                } else if (cloudData.sessions.length === localCount) {
+                    resultDiv.textContent += '\n✅ Todo sincronizado correctamente';
+                } else {
+                    resultDiv.textContent += '\n⚠️  La nube tiene más sesiones. Recarga la página.';
+                }
+            } else {
+                resultDiv.textContent += '☁️  No hay datos en la nube todavía\n';
+                resultDiv.textContent += '🔄 Subiendo datos...\n';
+                await sync.saveToCloud({
+                    sessions: this.sessions,
+                    weeklyGoal: this.weeklyGoal,
+                    lastModified: new Date().toISOString()
+                });
+                resultDiv.textContent += '✅ Datos subidos a la nube';
+            }
+        } catch (error) {
+            resultDiv.textContent += `\n❌ Error: ${error.message}`;
+        }
     }
 
     // Notificaciones
