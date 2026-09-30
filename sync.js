@@ -113,7 +113,7 @@ class StudySync {
         });
     }
 
-    // Sincronización inmediata - ESTRATEGIA SIMPLE
+    // Sincronización inmediata - ESTRATEGIA: El dispositivo local manda
     async syncNow(getDataCallback, loadDataCallback) {
         if (!navigator.onLine) {
             this.updateSyncStatus('offline');
@@ -122,26 +122,13 @@ class StudySync {
 
         this.updateSyncStatus('syncing');
 
-        // Cargar datos de la nube
-        const cloudData = await this.loadFromCloud();
-        
         // Obtener datos locales
         const localData = getDataCallback();
 
-        if (cloudData && cloudData.sessions && cloudData.sessions.length > 0) {
-            // La nube tiene datos: comparar por cantidad de sesiones
-            if (cloudData.sessions.length >= localData.sessions.length) {
-                // La nube tiene más o iguales sesiones: cargar de la nube
-                loadDataCallback(cloudData);
-                this.updateSyncStatus('synced');
-            } else {
-                // El dispositivo local tiene más sesiones: subir a la nube
-                await this.saveToCloud(localData);
-            }
-        } else {
-            // No hay datos en la nube: subir los locales
-            await this.saveToCloud(localData);
-        }
+        // Siempre subir datos locales a la nube (el dispositivo local es la fuente de verdad)
+        await this.saveToCloud(localData);
+        
+        this.updateSyncStatus('synced');
     }
 
     // Detener sincronización
