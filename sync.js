@@ -29,8 +29,7 @@ class StudySync {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Master-Key': this.apiKey,
-                    'X-Bin-Private': 'false'
+                    'X-Master-Key': this.apiKey
                 },
                 body: JSON.stringify(data)
             });
@@ -40,7 +39,10 @@ class StudySync {
                 this.updateSyncStatus('synced');
                 return true;
             } else {
-                throw new Error('Error en la respuesta');
+                const errorText = await response.text();
+                console.error('Error guardando en la nube:', response.status, errorText);
+                this.updateSyncStatus('error');
+                return false;
             }
         } catch (error) {
             console.error('Error guardando en la nube:', error);
@@ -68,7 +70,10 @@ class StudySync {
                 // El bin no existe todavía, crearlo
                 return null;
             } else {
-                throw new Error('Error en la respuesta');
+                const errorText = await response.text();
+                console.error('Error cargando de la nube:', response.status, errorText);
+                this.updateSyncStatus('error');
+                return null;
             }
         } catch (error) {
             console.error('Error cargando de la nube:', error);
