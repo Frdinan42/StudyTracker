@@ -1,5 +1,5 @@
-// Sistema de sincronización simplificado con JSONBin.io
-// Estrategia: La nube es la fuente de verdad
+// Sistema de sincronización con JSONBin.io
+// Estrategia: Fusión inteligente de datos
 
 class StudySync {
     constructor() {
@@ -113,7 +113,27 @@ class StudySync {
         });
     }
 
-    // Sincronización inmediata - ESTRATEGIA: El dispositivo local manda
+    // Fusionar sesiones de dos fuentes (eliminar duplicados por ID)
+    mergeSessions(cloudSessions, localSessions) {
+        const sessionMap = new Map();
+        
+        // Añadir sesiones de la nube
+        cloudSessions.forEach(session => {
+            sessionMap.set(session.id, session);
+        });
+        
+        // Añadir sesiones locales (sobrescribe si existe el mismo ID)
+        localSessions.forEach(session => {
+            sessionMap.set(session.id, session);
+        });
+        
+        // Convertir a array y ordenar por fecha (más reciente primero)
+        return Array.from(sessionMap.values()).sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
+    }
+
+    // Sincronización inmediata - ESTRATEGIA: Fusión inteligente
     async syncNow(getDataCallback, loadDataCallback) {
         if (!navigator.onLine) {
             this.updateSyncStatus('offline');
@@ -122,13 +142,32 @@ class StudySync {
 
         this.updateSyncStatus('syncing');
 
+        // Cargar datos de la nube
+        const cloudData = await this.loadFromCloud();
+        
         // Obtener datos locales
         const localData = getDataCallback();
 
-        // Siempre subir datos locales a la nube (el dispositivo local es la fuente de verdad)
-        await this.saveToCloud(localData);
-        
-        this.updateSyncStatus('synced');
+        if (cloudData && cloudData.sessions && cloudData.sessions.length > 0) {
+            // Fusionar datos: combinar sesiones de la nube y locales
+            const mergedSessions = this.mergeSessions(cloudData.sessions, localData.sessions);
+            
+            const mergedData = {
+                sessions: mergedSessions,
+                weeklyGoal: localData.weeklyGoal || cloudData.weeklyGoal,
+                lastModified: new Date().toISOString()
+            };
+
+            // Guardar datos fusionados en la nube
+            await this.saveToCloud(mergedData);
+            
+            // Cargar datos fusionados en el dispositivo actual
+            loadDataCallback(mergedData);
+            this.updateSyncStatus('synced');
+        } else {
+            // No hay datos en la nube, subir los locales
+            await this.saveToCloud(localData);
+        }
     }
 
     // Detener sincronización
