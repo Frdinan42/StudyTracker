@@ -391,6 +391,13 @@ input:focus, select:focus {
     margin-bottom: 10px;
 }
 
+/* Diagnostic Actions */
+.diagnostic-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
 /* Diagnostic Result */
 .diagnostic-result {
     margin-top: 15px;

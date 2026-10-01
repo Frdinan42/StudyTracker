@@ -159,6 +159,11 @@ class StudyTracker {
             this.runDiagnostic();
         });
 
+        // Forzar sincronización
+        document.getElementById('forceSyncBtn').addEventListener('click', () => {
+            this.forceSync();
+        });
+
         // Modal
         document.getElementById('cancelDelete').addEventListener('click', () => {
             this.closeModal();
@@ -478,6 +483,25 @@ class StudyTracker {
         this.saveWeeklyGoal();
         this.updateGoalProgress();
         this.showToast('Meta actualizada correctamente');
+    }
+
+    // Forzar sincronización inmediata
+    async forceSync() {
+        this.showToast('Sincronizando...', 'info');
+        
+        const data = {
+            sessions: this.sessions,
+            weeklyGoal: this.weeklyGoal,
+            lastModified: new Date().toISOString()
+        };
+
+        const success = await sync.saveToCloud(data);
+        
+        if (success) {
+            this.showToast('¡Sincronización completada!');
+        } else {
+            this.showToast('Error al sincronizar', 'error');
+        }
     }
 
     // Diagnóstico de sincronización

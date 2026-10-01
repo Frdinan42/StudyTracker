@@ -130,9 +130,14 @@
             <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem;">
                 Pulsa el botón para verificar el estado de la sincronización.
             </p>
-            <button id="diagnosticBtn" class="btn-secondary">
-                <span>🔍</span> Ejecutar diagnóstico
-            </button>
+            <div class="diagnostic-actions">
+                <button id="diagnosticBtn" class="btn-secondary">
+                    <span>🔍</span> Ejecutar diagnóstico
+                </button>
+                <button id="forceSyncBtn" class="btn-primary">
+                    <span>🔄</span> Forzar sincronización
+                </button>
+            </div>
             <div id="diagnosticResult" class="diagnostic-result"></div>
         </section>
 
